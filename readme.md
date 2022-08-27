@@ -7,7 +7,9 @@ before you run this, make sure to add details about your mongodb instance using 
 ## Env Variable
 
 `MONGO_DB_INSTANCE`
+
 `MONGO_CERTIFICATE` if you are using Certificate to login, Put Stringified Certificate here
+
 `MONGO_PRIVATE_KEY` if you are using Certificate to login, Put Sringified PrivateKey here
 
 To start, run `npm i` to install dependencies
