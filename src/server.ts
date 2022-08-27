@@ -8,6 +8,10 @@ import { config } from 'dotenv'
 
 config()
 
+if (process.env.debug === 'true') {
+  console.log(process.env)
+}
+
 const app = express()
 const port = process.env.PORT ?? 3000
 const mongoDBInstance = process.env.MONGO_DB_INSTANCE ?? 'mongodb://localhost/local'
