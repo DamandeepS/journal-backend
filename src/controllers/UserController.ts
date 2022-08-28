@@ -14,23 +14,22 @@ interface LoginPayload {
 
 interface LoginResponse {
   token: string
+  firstName: string
+  lastName: string
+  email: string
 }
 
 export const login: RequestHandler<unknown, LoginResponse | { message: string }, LoginPayload> = async (req, res) => {
   try {
     const { email, password } = req.body
-    console.log('LOGIN')
     if (!((email != null) && (password != null))) {
       res.status(400).send({
         message: 'Bad Request - Missing fields'
       })
     }
 
-    console.log({ email, password })
     const user = await User.findOne({ email })
-    console.log(user, (user != null) && (password != null) && Boolean(await compare(password, user.encryptedPassword)))
     if ((user != null) && (password != null) && Boolean(await compare(password, user.encryptedPassword))) {
-      console.log('LOGIN')
       const token = sign({
         user_id: user._id,
         email
@@ -38,7 +37,7 @@ export const login: RequestHandler<unknown, LoginResponse | { message: string },
       process.env.TOKEN_KEY ?? 'temp-token', {
         expiresIn: '2h'
       })
-      res.status(200).json({ token })
+      res.status(200).json({ token, email: user.email, firstName: user.firstName, lastName: user.lastName })
     } else {
       res.status(401).json({
         message: 'Incorrect Credentials'
@@ -60,15 +59,16 @@ interface RegisterPayload {
 
 interface RegisterResponse {
   token: string
+  firstName: string
+  lastName: string
+  email: string
 }
 
 export const register: RequestHandler<unknown, RegisterResponse | { message: string }, RegisterPayload> = async (req, res) => {
   try {
-    // to register
     const { email, password, firstName, lastName } = req.body
 
     if (!((firstName != null) && (lastName != null) && (email != null) && (password != null))) {
-      console.log('DAMAN')
       res.status(400).send({
         message: 'Bad Request - Missing fields'
       })
@@ -82,16 +82,13 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const encryptedPassword = await hash(password ?? '', 10)
-    console.log(encryptedPassword)
     const user = new User({
       firstName,
       lastName,
       email: email?.toLowerCase(), // sanitize: convert email to lowercase
       encryptedPassword
     })
-    console.log(user)
     await user.save()
-    console.log('DAMAN', user)
 
     const token = sign({
       user_id: user._id,
@@ -102,7 +99,7 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
     }
     )
 
-    res.status(200).json({ token })
+    res.status(200).json({ token, email: user.email, firstName: user.firstName, lastName: user.lastName })
   } catch {
     res.status(401)
   }
