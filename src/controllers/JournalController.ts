@@ -36,7 +36,7 @@ export const addNew: RequestHandler = async (req, res) => {
         error: 'Entry already added for today',
         code: 401
       })
-    } else { res.status(400).json(e) }
+    } else { res.status(400).json({ e }) }
   }
 }
 

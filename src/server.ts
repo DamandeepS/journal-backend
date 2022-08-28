@@ -25,7 +25,9 @@ const certLocation = {
 
 void (async () => {
   try {
-    let options: ConnectOptions = {}
+    let options: ConnectOptions = {
+      dbName: 'myFirstDatabase'
+    }
 
     try {
       await writeCert(certLocation)
@@ -37,7 +39,8 @@ void (async () => {
     } catch {
       console.error('Failed to add the certificate')
     }
-    await connect(mongoDBInstance, options)
+    const db = (await connect(mongoDBInstance, options)).connection
+    db.on('error', console.log)
     app.use(urlencoded({ extended: true }))
     app.use(json())
 

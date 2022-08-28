@@ -24,7 +24,11 @@ export const JournalSchema = new Schema({
   tags: {
     type: Array<TAGS>,
     default: [TAGS.NORMAL]
+  },
+  personId: {
+    type: Schema.Types.ObjectId,
+    ref: 'users'
   }
 })
 
-export const JournalModel = model('Journal', JournalSchema)
+export const JournalModel = model('journal', JournalSchema)
