@@ -19,7 +19,7 @@ export const showAll: RequestHandler = async (_, res) => {
     const results = await Journal.find({
       personId
     })
-    res.json(results.map(normalizeDocument))
+    res.json(results.map(result => normalizeDocument(result, true)))
   } catch (e) {
     res.status(400).json(e)
   }
