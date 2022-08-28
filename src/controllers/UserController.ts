@@ -2,6 +2,8 @@
 import { compare, hash } from 'bcryptjs'
 import { RequestHandler } from 'express'
 import { sign } from 'jsonwebtoken'
+import { DecodedToken } from '../middleware/authenticateUser'
+import { JournalModel } from '../models/JournalModel'
 import { UserModal } from '../models/UsersModel'
 const User = UserModal
 
@@ -14,12 +16,14 @@ interface LoginResponse {
   token: string
 }
 
-export const login: RequestHandler<unknown, LoginResponse | string, LoginPayload> = async (req, res) => {
+export const login: RequestHandler<unknown, LoginResponse | { message: string }, LoginPayload> = async (req, res) => {
   try {
     const { email, password } = req.body
     console.log('LOGIN')
     if (!((email != null) && (password != null))) {
-      res.status(400).send('Bad Request - Missing fields')
+      res.status(400).send({
+        message: 'Bad Request - Missing fields'
+      })
     }
 
     console.log({ email, password })
@@ -36,10 +40,14 @@ export const login: RequestHandler<unknown, LoginResponse | string, LoginPayload
       })
       res.status(200).json({ token })
     } else {
-      res.status(401).json('Incorrect Credentials')
+      res.status(401).json({
+        message: 'Incorrect Credentials'
+      })
     }
   } catch {
-    res.status(401).json('Incorrect Credentials')
+    res.status(401).json({
+      message: 'Incorrect Credentials'
+    })
   }
 }
 
@@ -54,18 +62,22 @@ interface RegisterResponse {
   token: string
 }
 
-export const register: RequestHandler<unknown, RegisterResponse | string, RegisterPayload> = async (req, res) => {
+export const register: RequestHandler<unknown, RegisterResponse | { message: string }, RegisterPayload> = async (req, res) => {
   try {
     // to register
     const { email, password, firstName, lastName } = req.body
 
     if (!((firstName != null) && (lastName != null) && (email != null) && (password != null))) {
       console.log('DAMAN')
-      res.status(400).send('Bad Request - Missing fields')
+      res.status(400).send({
+        message: 'Bad Request - Missing fields'
+      })
     }
     const oldUser = await User.findOne({ email })
     if (oldUser != null) {
-      res.status(409).send('User Already Exist. Please Login')
+      res.status(409).send({
+        message: 'User Already Exist. Please Login'
+      })
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -95,4 +107,21 @@ export const register: RequestHandler<unknown, RegisterResponse | string, Regist
     res.status(401)
   }
   res.status(401)
+}
+
+export const deleteAccount: RequestHandler = async (req, res) => {
+  try {
+    const { user_id: personId } = res.locals.user as DecodedToken
+    await User.findByIdAndDelete(personId)
+    await JournalModel.deleteMany({
+      personId
+    })
+    res.status(200).json({
+      message: 'Account and associated data removed'
+    })
+  } catch {
+    res.status(500).json({
+      message: 'Error occured while deleting data'
+    })
+  }
 }

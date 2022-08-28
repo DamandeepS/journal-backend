@@ -26,7 +26,7 @@ const certLocation = {
 void (async () => {
   try {
     let options: ConnectOptions = {
-      dbName: 'myFirstDatabase'
+      dbName: 'journalDB'
     }
 
     try {

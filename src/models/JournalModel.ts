@@ -1,8 +1,7 @@
 import { Schema, model } from 'mongoose'
+import { getDate } from '../utils/create-date'
 
-enum TAGS {'GOOD' = 'GOOD', 'BAD' = 'BAD', 'NORMAL' = 'NORMAL', 'WEIRD_BUT_GOOD' = 'WEIRD_BUT_GOOD', 'SIMPLY_WEIRD' = 'SIMPLY_WEIRD', 'WEIRD_AND_BAD' = 'WEIRD_AND_BAD', 'BRAINFUCK' = 'BRAINFUCK', 'SAD' = 'SAD', 'LONELY' = 'LONELY', 'EXCITED' = 'EXCITED', 'TIRED' = 'TIRED', 'EUPHORIC' = 'EUPHORIC'}
-
-const getDate = (date: Date): string => `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+export enum TAGS {'GOOD' = 'GOOD', 'BAD' = 'BAD', 'NORMAL' = 'NORMAL', 'WEIRD_BUT_GOOD' = 'WEIRD_BUT_GOOD', 'SIMPLY_WEIRD' = 'SIMPLY_WEIRD', 'WEIRD_AND_BAD' = 'WEIRD_AND_BAD', 'BRAINFUCK' = 'BRAINFUCK', 'SAD' = 'SAD', 'LONELY' = 'LONELY', 'EXCITED' = 'EXCITED', 'TIRED' = 'TIRED', 'EUPHORIC' = 'EUPHORIC'}
 
 export const JournalSchema = new Schema({
   _id: {

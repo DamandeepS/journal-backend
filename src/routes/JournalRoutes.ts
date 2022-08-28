@@ -1,6 +1,7 @@
 import { addNew, deleteEntry, jounal, showAll, update } from '../controllers/JournalController'
-import { login, register } from '../controllers/UserController'
+import { deleteAccount, login, register } from '../controllers/UserController'
 import { AppType } from '../server'
+import { verifyToken } from '../middleware/authenticateUser'
 import cors, { CorsOptions } from 'cors'
 
 const corsOptions: CorsOptions = {
@@ -9,14 +10,14 @@ const corsOptions: CorsOptions = {
 
 export default function (app: AppType): void {
   app.route('/journal')
-    .get(cors(corsOptions), showAll)
-    .post(cors(corsOptions), addNew)
+    .get(cors(corsOptions), verifyToken, showAll)
+    .post(cors(corsOptions), verifyToken, addNew)
     .options(cors())
 
   app.route('/journal/:journalId')
-    .get(cors(corsOptions), jounal)
-    .delete(cors(corsOptions), deleteEntry)
-    .put(cors(corsOptions), update)
+    .get(cors(corsOptions), verifyToken, jounal)
+    .delete(cors(corsOptions), verifyToken, deleteEntry)
+    .put(cors(corsOptions), verifyToken, update)
     .options(cors())
 
   app.route('/login')
@@ -25,5 +26,9 @@ export default function (app: AppType): void {
 
   app.route('/register')
     .post(cors(corsOptions), register)
+    .options(cors())
+
+  app.route('/delete-everything')
+    .post(cors(corsOptions), verifyToken, deleteAccount)
     .options(cors())
 }
