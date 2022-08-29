@@ -13,15 +13,16 @@ interface MongoError {
   keyPattern?: {[propName: string]: string | number} | undefined | null
 }
 
-export const showAll: RequestHandler = async (_, res) => {
+export const showAll: RequestHandler = async (req, res) => {
   try {
+    const { limit } = req.params
     const { user_id: personId } = res.locals.user as DecodedToken
     const results = await Journal.find({
       personId
-    })
-    res.json(results.map(result => normalizeDocument(result, true)))
+    }).limit(parseInt(limit))
+    return res.json(results.map(result => normalizeDocument(result, true)))
   } catch (e) {
-    res.status(400).json(e)
+    return res.status(400).json(e)
   }
 }
 
@@ -32,9 +33,9 @@ export const jounal: RequestHandler = async (req, res) => {
       _id: `${req.params.journalId}${personId.toString()}`,
       personId
     })
-    res.json(normalizeDocument(result))
+    return res.json(normalizeDocument(result))
   } catch (e) {
-    res.status(404).json(e)
+    return res.status(404).json(e)
   }
 }
 
@@ -43,15 +44,15 @@ export const addNew: RequestHandler = async (req, res) => {
     const { user_id: personId } = res.locals.user as DecodedToken
     const newJournalEntry = new Journal({ ...req.body, personId, _id: `${getDate(new Date())}${personId.toString()}` })
     const result = await newJournalEntry.save()
-    res.json(normalizeDocument(result))
+    return res.json(normalizeDocument(result))
   } catch (e) {
     const error: MongoError = e as MongoError
     if (typeof error.keyPattern?._id !== 'undefined') {
-      res.status(403).json({
+      return res.status(403).json({
         error: 'Entry already added for today',
         code: 401
       })
-    } else { res.status(400).json({ e: 'failed' }) }
+    } else { return res.status(400).json({ message: 'Failed to add new entry ', stack: e }) }
   }
 }
 
@@ -65,9 +66,11 @@ export const update: RequestHandler = async (req, res) => {
     (req.body) as typeof JournalSchema,
     { new: true }
     )
-    res.json(normalizeDocument(result))
+    return res.json(normalizeDocument(result))
   } catch {
-    res.status(400)
+    return res.status(400).json({
+      message: 'Failed to update the entry'
+    })
   }
 }
 export const deleteEntry: RequestHandler = async (req, res) => {
@@ -78,8 +81,10 @@ export const deleteEntry: RequestHandler = async (req, res) => {
       personId
     }
     )
-    res.json(normalizeDocument(result))
+    return res.json(normalizeDocument(result))
   } catch {
-    res.status(400)
+    return res.status(400).json({
+      message: 'Failed to delete the entry'
+    })
   }
 }
