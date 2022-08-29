@@ -75,7 +75,7 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
     }
     const oldUser = await User.findOne({ email })
     if (oldUser != null) {
-      res.status(409).send({
+      return res.status(409).send({
         message: 'User Already Exist. Please Login'
       })
     }
@@ -88,9 +88,7 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
       encryptedPassword
     })
 
-    console.log('DAMAN', user, User.schema)
     await user.save()
-    console.log('DAMAN', user)
 
     const token = sign({
       user_id: user._id,
@@ -101,11 +99,10 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
     }
     )
 
-    res.status(200).json({ token, email: user.email, firstName: user.firstName, lastName: user.lastName })
-  } catch {
-    res.status(401)
+    return res.status(200).json({ token, email: user.email, firstName: user.firstName, lastName: user.lastName })
+  } catch (e) {
+    return res.status(401).json({ message: JSON.stringify(e) })
   }
-  res.status(401)
 }
 
 export const deleteAccount: RequestHandler = async (req, res) => {
