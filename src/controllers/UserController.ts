@@ -22,8 +22,8 @@ interface LoginResponse {
 export const login: RequestHandler<unknown, LoginResponse | { message: string }, LoginPayload> = async (req, res) => {
   try {
     const { email, password } = req.body
-    if (!((email != null) && (password != null))) {
-      res.status(400).send({
+    if (!((email != null) && (password != null) && email !== '' && password !== '')) {
+      return res.status(400).send({
         message: 'Bad Request - Missing fields'
       })
     }
