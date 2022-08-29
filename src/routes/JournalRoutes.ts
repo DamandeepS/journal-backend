@@ -5,7 +5,8 @@ import { verifyToken } from '../middleware/authenticateUser'
 import cors, { CorsOptions } from 'cors'
 
 const corsOptions: CorsOptions = {
-  credentials: true
+  credentials: true,
+  origin: '*'
 }
 
 export default function (app: AppType): void {
