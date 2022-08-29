@@ -80,7 +80,6 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
       })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const encryptedPassword = await hash(password ?? '', 10)
     const user = new User({
       firstName,
@@ -88,7 +87,10 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
       email: email?.toLowerCase(), // sanitize: convert email to lowercase
       encryptedPassword
     })
+
+    console.log('DAMAN', user, User.schema)
     await user.save()
+    console.log('DAMAN', user)
 
     const token = sign({
       user_id: user._id,
