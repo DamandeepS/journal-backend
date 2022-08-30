@@ -6,6 +6,7 @@ export interface NormalizedDocument {
   description: string
   date: string
   tags: TAGS[]
+  modified: string
 }
 
 const MAX_LENGTH_FOR_TITLE = 80
@@ -19,5 +20,6 @@ export const normalizeDocument = (obj: Document | undefined | null, trunc = fals
       title: processString(obj.get('title') as string, MAX_LENGTH_FOR_TITLE, trunc),
       description: processString(obj.get('description') as string, MAX_LENGTH_FOR_DESCRIPTION, trunc),
       date: obj.get('date') as string,
-      tags: obj.get('tags') as TAGS[]
+      tags: obj.get('tags') as TAGS[],
+      modified: obj.get('modified') as string
     })

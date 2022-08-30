@@ -20,6 +20,10 @@ export const JournalSchema = new Schema({
     type: Date,
     default: Date.now()
   },
+  modified: {
+    type: Date,
+    default: Date.now()
+  },
   tags: {
     type: Array<TAGS>,
     default: [TAGS.NORMAL]

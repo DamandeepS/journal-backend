@@ -3,8 +3,8 @@
 
 import { RequestHandler } from 'express'
 import { DecodedToken } from '../middleware/authenticateUser'
-import { JournalModel, JournalSchema } from '../models/JournalModel'
-import { normalizeDocument } from '../utils/normalize-document'
+import { JournalModel, TAGS } from '../models/JournalModel'
+import { NormalizedDocument, normalizeDocument } from '../utils/normalize-document'
 
 const Journal = JournalModel
 
@@ -38,38 +38,63 @@ export const jounal: RequestHandler = async (req, res) => {
   }
 }
 
-export const addNew: RequestHandler = async (req, res) => {
+interface JournalPayload {
+  title: string
+  description: string
+  date: string
+  tags: TAGS[]
+  modified: unknown
+}
+
+export const addNew: RequestHandler<unknown, NormalizedDocument | { message: string }, JournalPayload> = async (req, res) => {
   const { date } = {
     date: new Date().toISOString().substring(0, 10),
     ...(req.body as { date?: string | undefined})
   }
+
+  delete req.body.modified
   try {
+    if (new Date() < new Date(date)) {
+      return res.status(400).json({ message: 'Cannot add entries in advance' })
+    }
     const { user_id: personId } = res.locals.user as DecodedToken
-    const newJournalEntry = new Journal({ ...req.body, personId, _id: `${date}${personId.toString()}` })
+    const newJournalEntry = new Journal({ ...req.body, personId, _id: `${date.substring(0, 10)}${personId.toString()}` })
     const result = await newJournalEntry.save()
-    return res.json(normalizeDocument(result))
+    return res.json(normalizeDocument(result) as NormalizedDocument)
   } catch (e) {
     const error: MongoError = e as MongoError
+    console.log(e)
     if (typeof error.keyPattern?._id !== 'undefined') {
       return res.status(409).json({
-        message: `Entry already added for ${date}`,
-        code: 409
+        message: `Entry already added for ${date}`
       })
-    } else { return res.status(400).json({ message: 'Failed to add new entry ', stack: e }) }
+    } else { return res.status(400).json({ message: 'Failed to add new entry ' }) }
   }
 }
 
-export const update: RequestHandler = async (req, res) => {
+export const update: RequestHandler<{ journalId: string }, NormalizedDocument | { message: string }, JournalPayload> = async (req, res) => {
   try {
     const { user_id: personId } = res.locals.user as DecodedToken
+    delete req.body.modified
+    const entry = await Journal.findOne({
+      _id: `${req.params.journalId}${personId.toString()}`,
+      personId
+    })
+
+    if (new Date() < new Date(req.body.date)) {
+      return res.status(400).json({ message: 'Cannot add entries in advance' })
+    }
     const result = await Journal.findOneAndUpdate({
       _id: `${req.params.journalId}${personId.toString()}`,
       personId
     },
-    (req.body) as typeof JournalSchema,
+    {
+      ...(req.body),
+      date: entry?.date ?? new Date()
+    },
     { new: true }
     )
-    return res.json(normalizeDocument(result))
+    return res.json(normalizeDocument(result) as NormalizedDocument)
   } catch {
     return res.status(400).json({
       message: 'Failed to update the entry'
