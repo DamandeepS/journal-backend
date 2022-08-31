@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-base-to-string */
 // this disable is required because for some reason TS thinks this will cause issue, but it is working fine
-
 import { RequestHandler } from 'express'
 import { DecodedToken } from '../middleware/authenticateUser'
 import { JournalModel, TAGS } from '../models/JournalModel'
@@ -14,11 +13,11 @@ interface MongoError {
 
 export const showAll: RequestHandler = async (req, res) => {
   try {
-    const { limit } = req.params
+    const { limit } = { ...req.params, limit: '30' }
     const { user_id: personId } = res.locals.user as DecodedToken
     const results = await Journal.find({
       personId
-    }).limit(parseInt(limit))
+    }).sort({ date: -1 }).limit(parseInt(limit))
     return res.json(results.map(result => normalizeDocument(result, true)))
   } catch (e) {
     return res.status(400).json(e)
