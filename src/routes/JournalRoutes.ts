@@ -1,5 +1,5 @@
 import { addNew, deleteEntry, jounal, showAll, update } from '../controllers/JournalController'
-import { deleteAccount, login, register } from '../controllers/UserController'
+import { changePassword, deleteAccount, editAccount, login, register } from '../controllers/UserController'
 import { AppType } from '../server'
 import { verifyToken } from '../middleware/authenticateUser'
 import cors, { CorsOptions } from 'cors'
@@ -29,7 +29,12 @@ export default function (app: AppType): void {
     .post(cors(corsOptions), register)
     .options(cors())
 
-  app.route('/delete-everything')
-    .post(cors(corsOptions), verifyToken, deleteAccount)
+  app.route('/account')
+    .delete(cors(corsOptions), verifyToken, deleteAccount)
+    .put(cors(corsOptions), verifyToken, editAccount)
+    .options(cors())
+
+  app.route('/account/change-password')
+    .put(cors(corsOptions), verifyToken, changePassword)
     .options(cors())
 }
