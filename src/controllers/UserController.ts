@@ -69,7 +69,7 @@ export const register: RequestHandler<unknown, RegisterResponse | { message: str
     const { email, password, firstName, lastName } = req.body
 
     if (email == null || firstName == null || lastName == null || password == null || email?.length === 0 || firstName?.length === 0 || lastName?.length === 0 || password?.length === 0) {
-      res.status(400).send({
+      return res.status(400).send({
         message: 'Bad Request - Missing fields'
       })
     }
@@ -133,7 +133,7 @@ export const changePassword: RequestHandler<unknown, RegisterResponse | { messag
         personId
       }, { encryptedPassword }, { returnNewDocument: true })
       if (user != null) {
-        await user?.save()
+        await user.save()
         const token = sign({
           user_id: user._id,
           email: user.email
@@ -202,11 +202,11 @@ export const deleteAccount: RequestHandler<unknown, RegisterResponse | { message
     await JournalModel.deleteMany({
       personId
     })
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Account and associated data removed'
     })
   } catch {
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Error occured while deleting data'
     })
   }
