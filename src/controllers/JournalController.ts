@@ -90,7 +90,8 @@ export const update: RequestHandler<{ journalId: string }, NormalizedDocument | 
     {
       ...(req.body),
       date: entry?.date ?? new Date(),
-      tags: req.body.tags.split(',') as TAGS[]
+      tags: req.body.tags.split(',') as TAGS[],
+      modified: new Date()
     },
     { new: true }
     )
