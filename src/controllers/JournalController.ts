@@ -41,7 +41,7 @@ interface JournalPayload {
   title: string
   description: string
   date: string
-  tags: TAGS[]
+  tags: string
   modified: unknown
 }
 
@@ -57,7 +57,7 @@ export const addNew: RequestHandler<unknown, NormalizedDocument | { message: str
       return res.status(400).json({ message: 'Cannot add entries in advance' })
     }
     const { user_id: personId } = res.locals.user as DecodedToken
-    const newJournalEntry = new Journal({ ...req.body, personId, _id: `${date.substring(0, 10)}${personId.toString()}` })
+    const newJournalEntry = new Journal({ ...req.body, tags: req.body.tags.split(',') as TAGS[], personId, _id: `${date.substring(0, 10)}${personId.toString()}` })
     const result = await newJournalEntry.save()
     return res.json(normalizeDocument(result) as NormalizedDocument)
   } catch (e) {
@@ -89,7 +89,8 @@ export const update: RequestHandler<{ journalId: string }, NormalizedDocument | 
     },
     {
       ...(req.body),
-      date: entry?.date ?? new Date()
+      date: entry?.date ?? new Date(),
+      tags: req.body.tags.split(',') as TAGS[]
     },
     { new: true }
     )
