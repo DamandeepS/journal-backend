@@ -194,13 +194,25 @@ export const editAccount: RequestHandler<unknown, RegisterResponse | { message: 
   }
 }
 
-export const deleteAccount: RequestHandler<unknown, RegisterResponse | { message: string }> = async (req, res) => {
+export const deleteAccount: RequestHandler<unknown, RegisterResponse | { message: string }, { password: string}> = async (req, res) => {
   try {
     const { user_id: personId } = res.locals.user as DecodedToken
-    await User.findByIdAndDelete(personId)
-    await JournalModel.deleteMany({
+    const { password } = req.body
+    if (password.length === 0) {
+      return res.status(400).json({ message: 'Password required' })
+    }
+    const user = await UserModal.findOne({
       personId
     })
+    if (user != null && await compare(password, user.encryptedPassword)) {
+      await User.findByIdAndDelete(personId)
+      await JournalModel.deleteMany({
+        personId
+      })
+    } else {
+      return res.status(403).json({ message: 'Incorrect Password' })
+    }
+
     return res.status(200).json({
       message: 'Account and associated data removed'
     })
