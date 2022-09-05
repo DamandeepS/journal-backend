@@ -96,7 +96,7 @@ export const update: RequestHandler<{ journalId: string }, NormalizedDocument | 
       tags: (req.body.tags.length !== 0) ? req.body.tags.split(',') as TAGS[] : [],
       modified: new Date()
     },
-    { new: true }
+    { returnDocument: 'after' }
     )
     return res.json(normalizeDocument(result) as NormalizedDocument)
   } catch {

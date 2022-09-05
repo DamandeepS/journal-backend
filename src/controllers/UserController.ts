@@ -131,7 +131,7 @@ export const changePassword: RequestHandler<unknown, RegisterResponse | { messag
       const encryptedPassword = await hash(newPassword ?? '', 10)
       const user = await UserModal.findOneAndUpdate({
         personId
-      }, { encryptedPassword }, { returnNewDocument: true })
+      }, { encryptedPassword }, { returnDocument: 'after' })
       if (user != null) {
         await user.save()
         const token = sign({
@@ -173,9 +173,8 @@ export const editAccount: RequestHandler<unknown, RegisterResponse | { message: 
       lastName,
       email
     }, {
-      returnNewDocument: true
+      returnDocument: 'after'
     })
-
     await user?.save()
 
     if (user != null) {
