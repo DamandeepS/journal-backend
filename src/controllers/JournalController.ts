@@ -78,28 +78,41 @@ export const update: RequestHandler<{ journalId: string }, NormalizedDocument | 
     const { user_id: personId } = res.locals.user as DecodedToken
     delete req.body.modified
     delete req.body._id
-    const entry = await Journal.findOne({
-      _id: `${req.params.journalId}${personId.toString()}`,
-      personId
-    })
 
     if (new Date() < new Date(req.body.date)) {
       return res.status(400).json({ message: 'Cannot add entries in advance' })
     }
-    const result = await Journal.findOneAndUpdate({
-      _id: `${req.params.journalId}${personId.toString()}`,
-      personId
-    },
-    {
-      ...(req.body),
-      date: entry?.date ?? new Date(),
-      tags: (req.body.tags.length !== 0) ? req.body.tags.split(',') as TAGS[] : [],
-      modified: new Date()
-    },
-    { returnDocument: 'after' }
-    )
-    return res.json(normalizeDocument(result) as NormalizedDocument)
-  } catch {
+
+    if (req.params.journalId !== req.body.date.substring(0, 10)) {
+      const newJournalEntry = new Journal({ ...req.body, tags: (req.body.tags.length !== 0) ? req.body.tags.split(',') as TAGS[] : [], personId, _id: `${req.body.date.substring(0, 10)}${personId.toString()}` })
+      const result = await newJournalEntry.save()
+      await Journal.findOneAndDelete({
+        _id: `${req.params.journalId}${personId.toString()}`,
+        personId
+      })
+      return res.json(normalizeDocument(result) as NormalizedDocument)
+    } else {
+      const result = await Journal.findOneAndUpdate({
+        _id: `${req.params.journalId}${personId.toString()}`,
+        personId
+      },
+      {
+        ...(req.body),
+        date: req.body?.date ?? new Date(),
+        tags: (req.body.tags.length !== 0) ? req.body.tags.split(',') as TAGS[] : [],
+        modified: new Date()
+      },
+      { returnDocument: 'after' }
+      )
+      return res.json(normalizeDocument(result) as NormalizedDocument)
+    }
+  } catch (e) {
+    console.log(e)
+    if ((e as MongoError).keyPattern?._id !== 'undefined') {
+      return res.status(409).json({
+        message: `Entry already added for ${req.body?.date.substring(0, 10)}`
+      })
+    }
     return res.status(400).json({
       message: 'Failed to update the entry'
     })
